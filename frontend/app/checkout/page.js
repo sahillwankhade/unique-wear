@@ -390,7 +390,7 @@ export default function CheckoutPage() {
                       <span className="text-xs text-gray-400 block">Size: {item.size} × {item.qty}</span>
                     </div>
                   </div>
-                  <span className="font-bold text-gold pl-2 flex-shrink-0">${(item.price * item.qty).toFixed(2)}</span>
+                  <span className="font-bold text-gold pl-2 flex-shrink-0">₹{(item.price * item.qty).toFixed(2)}</span>
                 </div>
               ))}
             </div>
@@ -424,27 +424,27 @@ export default function CheckoutPage() {
             <div className="space-y-3.5 border-t border-white/5 pt-4 text-sm">
               <div className="flex justify-between text-gray-400">
                 <span>Subtotal</span>
-                <span className="font-semibold text-white">${itemsPrice}</span>
+                <span className="font-semibold text-white">₹{itemsPrice}</span>
               </div>
               {appliedCoupon && (
                 <div className="flex justify-between text-green-500 font-bold">
                   <span>Discount ({appliedCoupon.code})</span>
-                  <span>-${discountPrice}</span>
+                  <span>-₹{discountPrice}</span>
                 </div>
               )}
               <div className="flex justify-between text-gray-400">
                 <span>Shipping Fee</span>
                 <span className="font-semibold text-white">
-                  {shippingPrice === 0 ? 'FREE' : `$${shippingPrice}`}
+                  {shippingPrice === 0 ? 'FREE' : `₹${shippingPrice}`}
                 </span>
               </div>
               <div className="flex justify-between text-gray-400">
                 <span>GST Tax (18%)</span>
-                <span className="font-semibold text-white">${taxPrice}</span>
+                <span className="font-semibold text-white">₹{taxPrice}</span>
               </div>
               <div className="flex justify-between text-lg font-extrabold text-white border-t border-white/5 pt-4">
                 <span>Total Price</span>
-                <span className="text-gold">${totalPrice}</span>
+                <span className="text-gold">₹{totalPrice}</span>
               </div>
             </div>
 

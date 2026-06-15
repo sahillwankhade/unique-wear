@@ -137,7 +137,7 @@ export default function OrderSuccessPage() {
                       <span className="text-xs text-gray-400 block">Size: {item.size} | Qty: {item.qty}</span>
                     </div>
                   </div>
-                  <span className="font-bold text-gold">${(item.price * item.qty).toFixed(2)}</span>
+                  <span className="font-bold text-gold">₹{(item.price * item.qty).toFixed(2)}</span>
                 </div>
               );
             })}
@@ -151,7 +151,7 @@ export default function OrderSuccessPage() {
           </div>
           <div className="text-center md:text-right">
             <span className="text-xs text-gray-400 block uppercase tracking-widest font-bold">Grand Total</span>
-            <span className="text-2xl font-black text-gold">${order.totalPrice}</span>
+            <span className="text-2xl font-black text-gold">₹{order.totalPrice}</span>
           </div>
         </div>
 

@@ -55,7 +55,7 @@ export default function ProductCard({ product }) {
           </h3>
         </div>
         <div className="flex justify-between items-center mt-6">
-          <span className="text-xl font-black text-white">${product.price}</span>
+          <span className="text-xl font-black text-white">₹{product.price}</span>
           <button 
             onClick={handleAddToCart}
             className="bg-gold text-black hover:bg-white hover:text-black font-extrabold text-xs px-4 py-2.5 rounded-full uppercase tracking-wider transition-all duration-300 shadow-[0_4px_12px_rgba(197,168,90,0.15)] hover:shadow-[0_4px_20px_rgba(255,255,255,0.2)] cursor-pointer"

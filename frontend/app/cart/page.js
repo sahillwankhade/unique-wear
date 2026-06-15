@@ -42,7 +42,7 @@ export default function Cart() {
                   <div>
                     <h3 className="font-bold text-lg text-black dark:text-white mb-1">{item.name}</h3>
                     <p className="text-gray-400 text-sm uppercase mb-1">Size: <span className="font-bold text-black dark:text-white">{item.size}</span></p>
-                    <p className="text-gold font-bold">${item.price}</p>
+                    <p className="text-gold font-bold">₹{item.price}</p>
                   </div>
                 </div>
 
@@ -98,7 +98,7 @@ export default function Cart() {
               </div>
               <div className="flex justify-between text-xl font-extrabold text-black dark:text-white border-t border-gray-200 dark:border-gray-800 pt-4">
                 <span>Subtotal</span>
-                <span className="text-gold">${cartTotalPrice}</span>
+                <span className="text-gold">₹{cartTotalPrice}</span>
               </div>
             </div>
 

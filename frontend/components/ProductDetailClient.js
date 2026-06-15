@@ -49,7 +49,7 @@ export default function ProductDetailClient({ product }) {
             {product.name}
           </h1>
           <p className="text-2xl font-bold text-black dark:text-white mb-6">
-            ${product.price}
+            ₹{product.price}
           </p>
           <div className="border-t border-b border-gray-200 dark:border-gray-800 py-6 mb-8">
             <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-3">Description</h3>

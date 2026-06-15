@@ -479,7 +479,7 @@ export default function AdminDashboardPage() {
                             </div>
                           </td>
                           <td className="py-4 text-gray-300 font-semibold">{p.category}</td>
-                          <td className="py-4 text-gold font-bold">${p.price}</td>
+                          <td className="py-4 text-gold font-bold">₹{p.price}</td>
                           <td className="py-4">
                             <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
                               p.countInStock > 0 ? 'bg-green-950/40 text-green-400' : 'bg-red-950/40 text-red-400'
@@ -557,7 +557,7 @@ export default function AdminDashboardPage() {
             {/* Row: Price & Stock */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">Price ($) *</label>
+                <label className="block text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">Price (₹) *</label>
                 <input
                   type="number"
                   value={price}
