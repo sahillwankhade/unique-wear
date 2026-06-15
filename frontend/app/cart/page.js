@@ -7,16 +7,16 @@ export default function Cart() {
 
   return (
     <div className="container mx-auto px-4 py-16 min-h-[80vh]">
-      <h1 className="text-4xl font-extrabold mb-12 text-black dark:text-white uppercase tracking-wider">
+      <h1 className="text-4xl font-extrabold mb-12 text-white uppercase tracking-wider">
         Shopping Cart
       </h1>
       
       {cartItems.length === 0 ? (
-        <div className="text-center py-20 bg-gray-50 dark:bg-gray-950 border border-gray-100 dark:border-gray-900">
+        <div className="text-center py-20 bg-black/20 border border-white/5 rounded-2xl glass-panel">
           <p className="text-gray-500 text-lg mb-8">Your cart is currently empty.</p>
           <Link 
             href="/products" 
-            className="bg-black text-white dark:bg-white dark:text-black hover:bg-gold hover:text-black dark:hover:bg-gold dark:hover:text-black py-3 px-8 font-bold uppercase tracking-wider transition"
+            className="btn-gold py-3.5 px-8 rounded-full font-bold uppercase tracking-wider transition shadow-md inline-block"
           >
             Go Shop Collection
           </Link>
@@ -28,11 +28,11 @@ export default function Cart() {
             {cartItems.map((item) => (
               <div 
                 key={`${item.product}-${item.size}`}
-                className="flex flex-col sm:flex-row items-center justify-between p-6 bg-white dark:bg-gray-950 border border-gray-100 dark:border-gray-900 shadow-md gap-6"
+                className="flex flex-col sm:flex-row items-center justify-between p-6 bg-[#111113]/40 border border-white/5 rounded-2xl shadow-md gap-6 glass-panel"
               >
                 {/* Product Image & Info */}
                 <div className="flex items-center space-x-6 w-full sm:w-auto">
-                  <div className="w-20 h-24 bg-gray-100 dark:bg-gray-900 overflow-hidden flex-shrink-0">
+                  <div className="w-20 h-24 bg-black/40 border border-white/5 overflow-hidden flex-shrink-0 rounded-lg">
                     <img 
                       src={item.image.startsWith('http') ? item.image : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${item.image}`} 
                       alt={item.name} 
@@ -40,8 +40,8 @@ export default function Cart() {
                     />
                   </div>
                   <div>
-                    <h3 className="font-bold text-lg text-black dark:text-white mb-1">{item.name}</h3>
-                    <p className="text-gray-400 text-sm uppercase mb-1">Size: <span className="font-bold text-black dark:text-white">{item.size}</span></p>
+                    <h3 className="font-bold text-lg text-white mb-1">{item.name}</h3>
+                    <p className="text-gray-400 text-sm uppercase mb-1">Size: <span className="font-bold text-white">{item.size}</span></p>
                     <p className="text-gold font-bold">₹{item.price}</p>
                   </div>
                 </div>
@@ -52,15 +52,15 @@ export default function Cart() {
                     <button 
                       disabled={item.qty <= 1}
                       onClick={() => updateCartQty(item.product, item.size, item.qty - 1)}
-                      className="w-8 h-8 border border-gray-300 dark:border-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-900 font-bold flex items-center justify-center disabled:opacity-50 cursor-pointer"
+                      className="w-8 h-8 border border-white/10 text-gray-400 hover:border-gold hover:text-gold hover:bg-white/5 font-bold flex items-center justify-center disabled:opacity-30 cursor-pointer rounded-lg transition"
                     >
                       -
                     </button>
-                    <span className="font-bold text-black dark:text-white w-6 text-center">{item.qty}</span>
+                    <span className="font-bold text-white w-6 text-center">{item.qty}</span>
                     <button 
                       disabled={item.qty >= item.countInStock}
                       onClick={() => updateCartQty(item.product, item.size, item.qty + 1)}
-                      className="w-8 h-8 border border-gray-300 dark:border-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-900 font-bold flex items-center justify-center disabled:opacity-50 cursor-pointer"
+                      className="w-8 h-8 border border-white/10 text-gray-400 hover:border-gold hover:text-gold hover:bg-white/5 font-bold flex items-center justify-center disabled:opacity-30 cursor-pointer rounded-lg transition"
                     >
                       +
                     </button>
@@ -68,7 +68,7 @@ export default function Cart() {
                   
                   <button 
                     onClick={() => removeFromCart(item.product, item.size)}
-                    className="text-red-500 hover:text-red-700 font-bold text-sm uppercase tracking-wider cursor-pointer"
+                    className="text-red-500 hover:text-red-400 font-bold text-sm uppercase tracking-wider cursor-pointer"
                   >
                     Remove
                   </button>
@@ -78,25 +78,25 @@ export default function Cart() {
 
             <button 
               onClick={clearCart}
-              className="text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white text-sm font-bold uppercase tracking-wider border-b border-gray-500 hover:border-black cursor-pointer transition"
+              className="text-gray-400 hover:text-white text-sm font-bold uppercase tracking-wider border-b border-gray-500 cursor-pointer transition"
             >
               Clear Shopping Cart
             </button>
           </div>
 
           {/* Cart Summary */}
-          <div className="bg-white dark:bg-gray-950 border border-gray-100 dark:border-gray-900 p-8 shadow-md h-fit">
-            <h2 className="text-2xl font-bold mb-6 text-black dark:text-white uppercase tracking-wider border-b border-gray-200 dark:border-gray-800 pb-4">
+          <div className="bg-[#111113]/40 border border-white/5 p-8 shadow-md h-fit rounded-2xl glass-panel">
+            <h2 className="text-2xl font-bold mb-6 text-white uppercase tracking-wider border-b border-white/5 pb-4">
               Order Summary
             </h2>
             <div className="space-y-4 mb-8">
-              <div className="flex justify-between text-gray-600 dark:text-gray-400">
+              <div className="flex justify-between text-gray-400">
                 <span>Total Items</span>
-                <span className="font-bold text-black dark:text-white">
+                <span className="font-bold text-white">
                   {cartItems.reduce((acc, item) => acc + item.qty, 0)}
                 </span>
               </div>
-              <div className="flex justify-between text-xl font-extrabold text-black dark:text-white border-t border-gray-200 dark:border-gray-800 pt-4">
+              <div className="flex justify-between text-xl font-extrabold text-white border-t border-white/5 pt-4">
                 <span>Subtotal</span>
                 <span className="text-gold">₹{cartTotalPrice}</span>
               </div>
@@ -104,7 +104,7 @@ export default function Cart() {
 
             <Link 
               href="/checkout" 
-              className="block bg-black text-white dark:bg-white dark:text-black text-center py-4 font-bold uppercase tracking-widest hover:bg-gold hover:text-black transition shadow-md cursor-pointer"
+              className="block btn-gold text-center py-4 rounded-full font-bold uppercase tracking-widest transition shadow-md cursor-pointer"
             >
               Proceed to Checkout
             </Link>

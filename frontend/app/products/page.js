@@ -37,9 +37,9 @@ export default async function ProductsPage({ searchParams }) {
   }
 
   return (
-    <main className="py-12 bg-gray-50 dark:bg-black min-h-[90vh]">
+    <main className="py-12 bg-background min-h-[90vh]">
       <div className="container mx-auto px-4 max-w-7xl">
-        <h1 className="text-4xl font-extrabold text-center mb-12 tracking-wider uppercase text-black dark:text-white">
+        <h1 className="text-4xl font-extrabold text-center mb-12 tracking-wider uppercase text-white">
           {search ? `Search Results for "${search}"` : category ? `${category} Collection` : 'All Products'}
         </h1>
         {filteredProducts.length > 0 ? (

@@ -21,35 +21,35 @@ export default function Login() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-[80vh] bg-gray-50 dark:bg-black py-12">
-      <div className="bg-white dark:bg-gray-950 p-10 shadow-2xl w-full max-w-md border-t-4 border-gold">
-        <h2 className="text-3xl font-extrabold mb-8 text-center text-black dark:text-white uppercase tracking-wider">Login</h2>
+    <div className="flex items-center justify-center min-h-[80vh] bg-background py-12">
+      <div className="bg-[#111113]/40 p-10 shadow-2xl w-full max-w-md border border-white/5 rounded-3xl glass-panel border-t-4 border-t-gold">
+        <h2 className="text-3xl font-extrabold mb-8 text-center text-white uppercase tracking-wider">Login</h2>
         
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-800 rounded text-sm font-semibold">
+          <div className="mb-6 p-4 bg-red-900/20 border border-red-900/40 text-red-400 rounded-xl text-sm font-semibold">
             {error}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Email</label>
+            <label className="block text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">Email</label>
             <input 
               type="email" 
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 text-black dark:text-white rounded focus:outline-none focus:border-gold transition" 
+              className="w-full px-4 py-3 rounded-xl glass-input text-sm focus:outline-none" 
               placeholder="Enter email" 
               required
             />
           </div>
           <div>
-            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Password</label>
+            <label className="block text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">Password</label>
             <input 
               type="password" 
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 text-black dark:text-white rounded focus:outline-none focus:border-gold transition" 
+              className="w-full px-4 py-3 rounded-xl glass-input text-sm focus:outline-none" 
               placeholder="Enter password" 
               required
             />
@@ -57,13 +57,13 @@ export default function Login() {
           <button 
             type="submit" 
             disabled={submitting}
-            className="w-full bg-black text-white dark:bg-white dark:text-black font-bold py-3 uppercase tracking-widest hover:bg-gold hover:text-black transition disabled:opacity-50 cursor-pointer"
+            className="w-full btn-gold py-4 rounded-full text-sm font-extrabold uppercase tracking-widest transition disabled:opacity-50 cursor-pointer"
           >
             {submitting ? 'Signing In...' : 'Sign In'}
           </button>
         </form>
 
-        <p className="mt-8 text-center text-sm text-gray-500">
+        <p className="mt-8 text-center text-sm text-gray-400">
           Don't have an account?{' '}
           <Link href="/register" className="text-gold font-bold hover:underline">
             Register Here
