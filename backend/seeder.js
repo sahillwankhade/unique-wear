@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const User = require('./models/User');
 const Product = require('./models/Product');
+const Category = require('./models/Category');
 
 dotenv.config();
 
@@ -31,12 +32,31 @@ const users = [
   }
 ];
 
+const categories = [
+  {
+    name: 'Male',
+    image: 'https://images.unsplash.com/photo-1488161628813-04466f872be2?q=80&w=800',
+  },
+  {
+    name: 'Female',
+    image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=800',
+  },
+  {
+    name: 'Oversized',
+    image: 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=800',
+  },
+  {
+    name: 'Accessories',
+    image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?q=80&w=800',
+  }
+];
+
 const products = [
   {
     name: 'Premium Black Hoodie',
     images: ['https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=800'],
     description: 'High quality premium black hoodie made with 100% organic cotton. Perfect for cool weather and casual streetwear look.',
-    category: 'Outerwear',
+    category: 'Oversized',
     price: 89.99,
     discount: 0,
     sizes: ['S', 'M', 'L', 'XL'],
@@ -46,7 +66,7 @@ const products = [
     name: 'Minimalist White Tee',
     images: ['https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=800'],
     description: 'Classic minimalist white t-shirt. Soft, breathable, and pre-shrunk for a perfect fit.',
-    category: 'T-Shirts',
+    category: 'Male',
     price: 34.99,
     discount: 0,
     sizes: ['S', 'M', 'L', 'XL'],
@@ -56,7 +76,7 @@ const products = [
     name: 'Black T-Shirt',
     images: ['https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?q=80&w=800'],
     description: 'Premium black t-shirt made of 100% combed cotton, offering unmatched softness and daily wear comfort.',
-    category: 'T-Shirts',
+    category: 'Male',
     price: 500,
     discount: 0,
     sizes: ['S', 'M', 'L', 'XL'],
@@ -66,7 +86,7 @@ const products = [
     name: 'White T-Shirt',
     images: ['https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=800'],
     description: 'Premium white t-shirt crafted for style and ease. Durable collar and perfect athletic fit.',
-    category: 'T-Shirts',
+    category: 'Male',
     price: 500,
     discount: 0,
     sizes: ['S', 'M', 'L', 'XL'],
@@ -76,7 +96,7 @@ const products = [
     name: 'Gold Accent Jacket',
     images: ['https://images.unsplash.com/photo-1591047139829-d91aecb6caea?q=80&w=800'],
     description: 'Luxury gold accent jacket featuring custom gold zippers and button detail. Premium lining.',
-    category: 'Outerwear',
+    category: 'Female',
     price: 129.99,
     discount: 10,
     sizes: ['M', 'L', 'XL'],
@@ -86,7 +106,7 @@ const products = [
     name: 'Urban Cargo Pants',
     images: ['https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?q=80&w=800'],
     description: 'Rugged urban cargo pants with multi-pocket layout and adjustable ankle straps.',
-    category: 'Bottoms',
+    category: 'Male',
     price: 79.99,
     discount: 0,
     sizes: ['S', 'M', 'L'],
@@ -99,6 +119,7 @@ const importData = async () => {
   try {
     await Product.deleteMany();
     await User.deleteMany();
+    await Category.deleteMany();
 
     // Create users individually to trigger pre-save hook (bcrypt hashing)
     const createdUsers = [];
@@ -109,6 +130,10 @@ const importData = async () => {
 
     const adminUser = createdUsers[0]._id;
 
+    // Seed Categories
+    await Category.insertMany(categories);
+
+    // Seed Products
     const sampleProducts = products.map((product) => {
       return { ...product, user: adminUser };
     });
@@ -128,6 +153,7 @@ const destroyData = async () => {
   try {
     await Product.deleteMany();
     await User.deleteMany();
+    await Category.deleteMany();
 
     console.log('Data Destroyed!');
     process.exit(0);

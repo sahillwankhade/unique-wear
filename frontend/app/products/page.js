@@ -19,17 +19,28 @@ async function getProducts() {
 export default async function ProductsPage({ searchParams }) {
   const resolvedSearchParams = await searchParams;
   const category = resolvedSearchParams?.category;
+  const search = resolvedSearchParams?.search;
   const products = await getProducts();
 
-  const filteredProducts = category
-    ? products.filter((p) => p.category?.toLowerCase() === category.toLowerCase())
-    : products;
+  let filteredProducts = products;
+
+  if (category) {
+    filteredProducts = filteredProducts.filter((p) => p.category?.toLowerCase() === category.toLowerCase());
+  }
+
+  if (search) {
+    filteredProducts = filteredProducts.filter(
+      (p) =>
+        p.name?.toLowerCase().includes(search.toLowerCase()) ||
+        p.description?.toLowerCase().includes(search.toLowerCase())
+    );
+  }
 
   return (
     <main className="py-12 bg-gray-50 dark:bg-black min-h-[90vh]">
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto px-4 max-w-7xl">
         <h1 className="text-4xl font-extrabold text-center mb-12 tracking-wider uppercase text-black dark:text-white">
-          {category ? `${category} Collection` : 'All Products'}
+          {search ? `Search Results for "${search}"` : category ? `${category} Collection` : 'All Products'}
         </h1>
         {filteredProducts.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">

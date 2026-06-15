@@ -50,4 +50,30 @@ const deleteProduct = async (req, res) => {
   }
 };
 
-module.exports = { getProducts, getProductById, createProduct, deleteProduct };
+const updateProduct = async (req, res) => {
+  try {
+    const { name, price, description, image, category, sizes, countInStock } = req.body;
+    const product = await Product.findById(req.params.id);
+
+    if (product) {
+      product.name = name || product.name;
+      product.price = price !== undefined ? Number(price) : product.price;
+      product.description = description || product.description;
+      product.category = category || product.category;
+      if (image) {
+        product.images = [image];
+      }
+      product.sizes = sizes ? (Array.isArray(sizes) ? sizes : sizes.split(',').map((s) => s.trim())) : product.sizes;
+      product.countInStock = countInStock !== undefined ? Number(countInStock) : product.countInStock;
+
+      const updatedProduct = await product.save();
+      res.json(updatedProduct);
+    } else {
+      res.status(404).json({ message: 'Product not found' });
+    }
+  } catch (error) {
+    res.status(400).json({ message: error.message || 'Product update failed' });
+  }
+};
+
+module.exports = { getProducts, getProductById, createProduct, deleteProduct, updateProduct };

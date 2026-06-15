@@ -17,6 +17,13 @@ export default function CheckoutPage() {
   const [country, setCountry] = useState('India');
   const [paymentMethod, setPaymentMethod] = useState('COD'); // 'COD' or 'Razorpay'
 
+  // Coupon states
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [couponError, setCouponError] = useState('');
+  const [couponSuccess, setCouponSuccess] = useState('');
+
   // Processing states
   const [placingOrder, setPlacingOrder] = useState(false);
   const [error, setError] = useState('');
@@ -33,9 +40,11 @@ export default function CheckoutPage() {
 
   // Pricing calculations
   const itemsPrice = cartTotalPrice;
-  const shippingPrice = itemsPrice > 1000 ? 0 : 50;
-  const taxPrice = Number((itemsPrice * 0.18).toFixed(2)); // 18% GST standard
-  const totalPrice = Number((itemsPrice + shippingPrice + taxPrice).toFixed(2));
+  const discountPrice = appliedCoupon ? Number((itemsPrice * (appliedCoupon.discount / 100)).toFixed(2)) : 0;
+  const discountedSubtotal = itemsPrice - discountPrice;
+  const shippingPrice = discountedSubtotal > 1000 ? 0 : 50;
+  const taxPrice = Number((discountedSubtotal * 0.18).toFixed(2)); // 18% GST standard
+  const totalPrice = Number((discountedSubtotal + shippingPrice + taxPrice).toFixed(2));
 
   if (loading || !user) {
     return (
@@ -66,6 +75,38 @@ export default function CheckoutPage() {
       script.onerror = () => resolve(false);
       document.body.appendChild(script);
     });
+  };
+
+  const handleApplyCoupon = async (e) => {
+    e.preventDefault();
+    setCouponError('');
+    setCouponSuccess('');
+    if (!couponCode.trim()) return;
+
+    setCouponLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/api/coupons/validate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${user.token}`,
+        },
+        body: JSON.stringify({ code: couponCode }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || 'Invalid coupon code');
+      }
+
+      setAppliedCoupon(data);
+      setCouponSuccess(`Coupon applied successfully! Saved ${data.discount}%`);
+    } catch (err) {
+      setCouponError(err.message || 'Invalid coupon code');
+      setAppliedCoupon(null);
+    } finally {
+      setCouponLoading(false);
+    }
   };
 
   const submitOrderHandler = async (e) => {
@@ -330,58 +371,91 @@ export default function CheckoutPage() {
         </div>
 
         {/* Pricing Summary Panel */}
-        <div className="bg-[#111113]/40 border border-white/5 p-8 rounded-2xl shadow-md h-fit space-y-6">
-          <h2 className="text-xl font-bold text-white uppercase tracking-wider border-b border-white/5 pb-3">
-            3. Order Summary
-          </h2>
+        <div className="space-y-6">
+          <div className="bg-[#111113]/40 border border-white/5 p-8 rounded-2xl shadow-md h-fit space-y-6">
+            <h2 className="text-xl font-bold text-white uppercase tracking-wider border-b border-white/5 pb-3">
+              3. Order Summary
+            </h2>
 
-          {/* List items mini preview */}
-          <div className="space-y-4 max-h-48 overflow-y-auto pr-2 divide-y divide-white/5">
-            {cartItems.map((item) => (
-              <div key={`${item.product}-${item.size}`} className="flex justify-between items-center text-sm pt-3 first:pt-0">
-                <div className="flex items-center space-x-3 min-w-0">
-                  <div className="w-10 h-12 bg-black/40 overflow-hidden flex-shrink-0 rounded">
-                    <img src={item.image.startsWith('http') ? item.image : `${API_URL}${item.image}`} alt={item.name} className="object-cover w-full h-full" />
+            {/* List items mini preview */}
+            <div className="space-y-4 max-h-48 overflow-y-auto pr-2 divide-y divide-white/5">
+              {cartItems.map((item) => (
+                <div key={`${item.product}-${item.size}`} className="flex justify-between items-center text-sm pt-3 first:pt-0">
+                  <div className="flex items-center space-x-3 min-w-0">
+                    <div className="w-10 h-12 bg-black/40 overflow-hidden flex-shrink-0 rounded">
+                      <img src={item.image.startsWith('http') ? item.image : `${API_URL}${item.image}`} alt={item.name} className="object-cover w-full h-full" />
+                    </div>
+                    <div className="truncate">
+                      <span className="font-bold text-white block truncate">{item.name}</span>
+                      <span className="text-xs text-gray-400 block">Size: {item.size} × {item.qty}</span>
+                    </div>
                   </div>
-                  <div className="truncate">
-                    <span className="font-bold text-white block truncate">{item.name}</span>
-                    <span className="text-xs text-gray-400 block">Size: {item.size} × {item.qty}</span>
-                  </div>
+                  <span className="font-bold text-gold pl-2 flex-shrink-0">${(item.price * item.qty).toFixed(2)}</span>
                 </div>
-                <span className="font-bold text-gold pl-2 flex-shrink-0">${(item.price * item.qty).toFixed(2)}</span>
+              ))}
+            </div>
+
+            {/* Promo Code Coupon Input Box */}
+            <div className="border-t border-white/5 pt-4">
+              <label className="block text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">Have a Coupon?</label>
+              <div className="flex space-x-2">
+                <input
+                  type="text"
+                  value={couponCode}
+                  onChange={(e) => setCouponCode(e.target.value)}
+                  placeholder="e.g. GOLD20"
+                  className="w-full px-3 py-2 rounded-xl glass-input text-xs focus:outline-none uppercase"
+                  disabled={appliedCoupon !== null}
+                />
+                <button
+                  type="button"
+                  onClick={handleApplyCoupon}
+                  disabled={couponLoading || appliedCoupon !== null}
+                  className="bg-gold text-black px-4 py-2 rounded-xl font-bold text-xs uppercase tracking-wider hover:opacity-90 disabled:opacity-50 transition cursor-pointer"
+                >
+                  {couponLoading ? '...' : 'Apply'}
+                </button>
               </div>
-            ))}
-          </div>
+              {couponError && <p className="text-xs text-red-500 font-bold mt-1.5">{couponError}</p>}
+              {couponSuccess && <p className="text-xs text-green-500 font-bold mt-1.5">{couponSuccess}</p>}
+            </div>
 
-          {/* Prices calculation list */}
-          <div className="space-y-3.5 border-t border-white/5 pt-4 text-sm">
-            <div className="flex justify-between text-gray-400">
-              <span>Subtotal</span>
-              <span className="font-semibold text-white">${itemsPrice}</span>
+            {/* Prices calculation list */}
+            <div className="space-y-3.5 border-t border-white/5 pt-4 text-sm">
+              <div className="flex justify-between text-gray-400">
+                <span>Subtotal</span>
+                <span className="font-semibold text-white">${itemsPrice}</span>
+              </div>
+              {appliedCoupon && (
+                <div className="flex justify-between text-green-500 font-bold">
+                  <span>Discount ({appliedCoupon.code})</span>
+                  <span>-${discountPrice}</span>
+                </div>
+              )}
+              <div className="flex justify-between text-gray-400">
+                <span>Shipping Fee</span>
+                <span className="font-semibold text-white">
+                  {shippingPrice === 0 ? 'FREE' : `$${shippingPrice}`}
+                </span>
+              </div>
+              <div className="flex justify-between text-gray-400">
+                <span>GST Tax (18%)</span>
+                <span className="font-semibold text-white">${taxPrice}</span>
+              </div>
+              <div className="flex justify-between text-lg font-extrabold text-white border-t border-white/5 pt-4">
+                <span>Total Price</span>
+                <span className="text-gold">${totalPrice}</span>
+              </div>
             </div>
-            <div className="flex justify-between text-gray-400">
-              <span>Shipping Fee</span>
-              <span className="font-semibold text-white">
-                {shippingPrice === 0 ? 'FREE' : `$${shippingPrice}`}
-              </span>
-            </div>
-            <div className="flex justify-between text-gray-400">
-              <span>GST Tax (18%)</span>
-              <span className="font-semibold text-white">${taxPrice}</span>
-            </div>
-            <div className="flex justify-between text-lg font-extrabold text-white border-t border-white/5 pt-4">
-              <span>Total Price</span>
-              <span className="text-gold">${totalPrice}</span>
-            </div>
-          </div>
 
-          <button
-            type="submit"
-            disabled={placingOrder}
-            className="w-full btn-gold py-4 rounded-full text-sm font-extrabold uppercase tracking-widest shadow-md transition disabled:opacity-50 cursor-pointer"
-          >
-            {placingOrder ? 'Processing...' : 'Place Order'}
-          </button>
+            <button
+              type="submit"
+              disabled={placingOrder}
+              className="w-full btn-gold py-4 rounded-full text-sm font-extrabold uppercase tracking-widest shadow-md transition disabled:opacity-50 cursor-pointer"
+            >
+              {placingOrder ? 'Processing...' : 'Place Order'}
+            </button>
+          </div>
         </div>
       </form>
     </div>
