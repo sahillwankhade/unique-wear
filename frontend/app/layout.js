@@ -1,5 +1,6 @@
 import './globals.css';
 import Navbar from '../components/Navbar';
+import Providers from '../components/Providers';
 
 export const metadata = {
   title: 'Unique Wear | Premium Modern Fashion',
@@ -10,8 +11,10 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className="antialiased">
-        <Navbar />
-        {children}
+        <Providers>
+          <Navbar />
+          {children}
+        </Providers>
       </body>
     </html>
   );

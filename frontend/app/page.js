@@ -1,14 +1,27 @@
 import HeroBanner from '../components/HeroBanner';
 import ProductCard from '../components/ProductCard';
 
-const featuredProducts = [
-  { _id: '1', name: 'Premium Black Hoodie', category: 'Outerwear', price: 89.99, image: 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=800' },
-  { _id: '2', name: 'Minimalist White Tee', category: 'T-Shirts', price: 34.99, image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=800' },
-  { _id: '3', name: 'Gold Accent Jacket', category: 'Outerwear', price: 129.99, image: 'https://images.unsplash.com/photo-1591047139829-d91aecb6caea?q=80&w=800' },
-  { _id: '4', name: 'Urban Cargo Pants', category: 'Bottoms', price: 79.99, image: 'https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?q=80&w=800' },
-];
+async function getProducts() {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+  try {
+    const res = await fetch(`${apiUrl}/api/products`, {
+      cache: 'no-store',
+    });
+    if (!res.ok) {
+      throw new Error('Failed to fetch products');
+    }
+    return await res.json();
+  } catch (error) {
+    console.error('Error fetching products:', error);
+    return [];
+  }
+}
 
-export default function Home() {
+export default async function Home() {
+  const products = await getProducts();
+  // Get first 4 products for featured collection
+  const featuredProducts = products.slice(0, 4);
+
   return (
     <main>
       <HeroBanner />
@@ -16,9 +29,15 @@ export default function Home() {
         <div className="container mx-auto px-4">
           <h2 className="text-4xl font-extrabold text-center mb-16 tracking-wider uppercase text-black dark:text-white">Featured Collection</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {featuredProducts.map(product => (
-              <ProductCard key={product._id} product={product} />
-            ))}
+            {featuredProducts.length > 0 ? (
+              featuredProducts.map(product => (
+                <ProductCard key={product._id} product={product} />
+              ))
+            ) : (
+              <div className="col-span-4 text-center py-10">
+                <p className="text-gray-500 text-lg">No products found. Please seed the database.</p>
+              </div>
+            )}
           </div>
         </div>
       </section>
