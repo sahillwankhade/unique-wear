@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { addOrderItems, getOrderById } = require('../controllers/orderController');
-const { protect } = require('../middleware/authMiddleware');
+const { addOrderItems, getOrderById, getOrders, updateOrderToDelivered, updateOrderToPaid } = require('../controllers/orderController');
+const { protect, admin } = require('../middleware/authMiddleware');
 const Razorpay = require('razorpay');
 
 router.post('/create-razorpay-order', async (req, res) => {
@@ -25,7 +25,9 @@ router.post('/create-razorpay-order', async (req, res) => {
   }
 });
 
-router.route('/').post(protect, addOrderItems);
+router.route('/').post(protect, addOrderItems).get(protect, admin, getOrders);
 router.route('/:id').get(protect, getOrderById);
+router.route('/:id/deliver').put(protect, admin, updateOrderToDelivered);
+router.route('/:id/pay').put(protect, admin, updateOrderToPaid);
 
 module.exports = router;

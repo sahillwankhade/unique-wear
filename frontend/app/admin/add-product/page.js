@@ -19,6 +19,11 @@ export default function AdminDashboardPage() {
   const [productsError, setProductsError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
+  // 4. Orders Management States
+  const [ordersList, setOrdersList] = useState([]);
+  const [loadingOrders, setLoadingOrders] = useState(true);
+  const [ordersError, setOrdersError] = useState('');
+
   // 1. Add / Edit Product States
   const [editingProduct, setEditingProduct] = useState(null); // holds product object if editing
   const [name, setName] = useState('');
@@ -98,6 +103,25 @@ export default function AdminDashboardPage() {
     }
   };
 
+  const fetchOrders = async () => {
+    setLoadingOrders(true);
+    setOrdersError('');
+    try {
+      const res = await fetch(`${API_URL}/api/orders`, {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to fetch orders');
+      setOrdersList(data);
+    } catch (err) {
+      setOrdersError(err.message || 'Error loading orders');
+    } finally {
+      setLoadingOrders(false);
+    }
+  };
+
   useEffect(() => {
     if (!loading) {
       if (!user || !user.isAdmin) {
@@ -106,6 +130,7 @@ export default function AdminDashboardPage() {
         fetchProducts();
         fetchCategories();
         fetchCoupons();
+        fetchOrders();
       }
     }
   }, [user, loading, router]);
@@ -381,6 +406,42 @@ export default function AdminDashboardPage() {
     }
   };
 
+  const handleDeliverOrder = async (orderId) => {
+    if (!window.confirm('Mark this order as delivered?')) return;
+    try {
+      const res = await fetch(`${API_URL}/api/orders/${orderId}/deliver`, {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to update order status');
+      alert('Order marked as delivered');
+      fetchOrders();
+    } catch (err) {
+      alert(err.message || 'Error updating order');
+    }
+  };
+
+  const handlePayOrder = async (orderId) => {
+    if (!window.confirm('Mark this order as paid?')) return;
+    try {
+      const res = await fetch(`${API_URL}/api/orders/${orderId}/pay`, {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to update payment status');
+      alert('Order marked as paid');
+      fetchOrders();
+    } catch (err) {
+      alert(err.message || 'Error updating order');
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-12 max-w-5xl min-h-[90vh]">
       {/* Title block & Tabs */}
@@ -423,6 +484,14 @@ export default function AdminDashboardPage() {
             }`}
           >
             Offers/Coupons
+          </button>
+          <button
+            onClick={() => setActiveTab('orders')}
+            className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer ${
+              activeTab === 'orders' ? 'bg-gold text-black shadow-md' : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            Orders
           </button>
         </div>
       </div>
@@ -852,6 +921,94 @@ export default function AdminDashboardPage() {
               </button>
             </form>
           </div>
+        </div>
+      )}
+
+      {/* --- TAB 5: ORDERS MANAGEMENT --- */}
+      {activeTab === 'orders' && (
+        <div className="glass-panel p-8 rounded-2xl bg-[#111113]/40 border border-white/5">
+          <div className="flex justify-between items-center mb-8">
+            <h2 className="text-xl font-bold text-white uppercase tracking-wider">Customer Orders</h2>
+          </div>
+
+          {loadingOrders ? (
+            <div className="text-center py-20 text-gray-500 font-bold text-sm">
+              Loading orders...
+            </div>
+          ) : ordersError ? (
+            <div className="text-center py-20 text-red-500 font-bold text-sm">{ordersError}</div>
+          ) : ordersList.length === 0 ? (
+            <div className="text-center py-20 text-gray-500 text-sm">No customer orders found.</div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse text-sm">
+                <thead>
+                  <tr className="border-b border-white/10 text-gray-400 font-bold uppercase tracking-wider text-xs">
+                    <th className="pb-4">Order ID</th>
+                    <th className="pb-4">Customer</th>
+                    <th className="pb-4">Date</th>
+                    <th className="pb-4">Total</th>
+                    <th className="pb-4">Method</th>
+                    <th className="pb-4">Paid</th>
+                    <th className="pb-4">Delivered</th>
+                    <th className="pb-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                  {ordersList.map((order) => (
+                    <tr key={order._id} className="hover:bg-white/[0.01] transition duration-200">
+                      <td className="py-4 font-mono text-xs text-gray-400">{order._id}</td>
+                      <td className="py-4">
+                        <span className="font-bold text-white block">{order.user?.name || 'Deleted User'}</span>
+                        <span className="text-xs text-gray-500 block">{order.user?.email || 'N/A'}</span>
+                      </td>
+                      <td className="py-4 text-gray-300">{new Date(order.createdAt).toLocaleDateString()}</td>
+                      <td className="py-4 text-gold font-bold">₹{order.totalPrice}</td>
+                      <td className="py-4 font-bold text-xs uppercase text-gray-300">{order.paymentMethod}</td>
+                      <td className="py-4">
+                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                          order.isPaid ? 'bg-green-950/40 text-green-400' : 'bg-yellow-950/40 text-yellow-400'
+                        }`}>
+                          {order.isPaid ? 'PAID' : 'PENDING'}
+                        </span>
+                      </td>
+                      <td className="py-4">
+                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                          order.isDelivered ? 'bg-green-950/40 text-green-400' : 'bg-blue-950/40 text-blue-400'
+                        }`}>
+                          {order.isDelivered ? 'DELIVERED' : 'PENDING'}
+                        </span>
+                      </td>
+                      <td className="py-4 text-right space-x-2">
+                        {!order.isPaid && (
+                          <button
+                            onClick={() => handlePayOrder(order._id)}
+                            className="bg-green-600/10 hover:bg-green-600 hover:text-white border border-green-600/20 text-green-400 text-xs px-3 py-1.5 rounded-full font-bold uppercase tracking-wider transition duration-300 cursor-pointer"
+                          >
+                            Mark Paid
+                          </button>
+                        )}
+                        {!order.isDelivered && (
+                          <button
+                            onClick={() => handleDeliverOrder(order._id)}
+                            className="bg-gold/10 hover:bg-gold hover:text-black border border-gold/20 text-gold text-xs px-3 py-1.5 rounded-full font-bold uppercase tracking-wider transition duration-300 cursor-pointer"
+                          >
+                            Mark Delivered
+                          </button>
+                        )}
+                        <Link
+                          href={`/order-success/${order._id}`}
+                          className="bg-white/5 hover:bg-white/10 border border-white/10 text-white text-xs px-3 py-1.5 rounded-full font-bold uppercase tracking-wider transition duration-300 inline-block"
+                        >
+                          View Invoice
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
     </div>
