@@ -15,6 +15,7 @@ export default function Navbar() {
         </Link>
         <div className="space-x-6 flex items-center">
           <Link href="/products" className="hover:text-gold transition">Shop</Link>
+          <Link href="/categories" className="hover:text-gold transition">Categories</Link>
           <Link href="/cart" className="hover:text-gold transition flex items-center">
             Cart
             {cartItemsCount > 0 && (
@@ -26,6 +27,11 @@ export default function Navbar() {
           {user ? (
             <div className="flex items-center space-x-4">
               <span className="text-gray-300 text-sm hidden sm:inline">Hi, {user.name}</span>
+              {user.isAdmin && (
+                <Link href="/admin/add-product" className="text-gold font-bold text-sm uppercase tracking-wider hover:opacity-80 transition">
+                  Add Product
+                </Link>
+              )}
               <button 
                 onClick={logout} 
                 className="hover:bg-gold hover:text-black border border-gold rounded px-3 py-1 text-sm font-bold tracking-wider cursor-pointer uppercase transition duration-300"

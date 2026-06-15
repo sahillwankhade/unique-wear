@@ -33,7 +33,11 @@ export default function Cart() {
                 {/* Product Image & Info */}
                 <div className="flex items-center space-x-6 w-full sm:w-auto">
                   <div className="w-20 h-24 bg-gray-100 dark:bg-gray-900 overflow-hidden flex-shrink-0">
-                    <img src={item.image} alt={item.name} className="object-cover w-full h-full" />
+                    <img 
+                      src={item.image.startsWith('http') ? item.image : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}${item.image}`} 
+                      alt={item.name} 
+                      className="object-cover w-full h-full" 
+                    />
                   </div>
                   <div>
                     <h3 className="font-bold text-lg text-black dark:text-white mb-1">{item.name}</h3>

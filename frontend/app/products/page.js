@@ -16,24 +16,30 @@ async function getProducts() {
   }
 }
 
-export default async function ProductsPage() {
+export default async function ProductsPage({ searchParams }) {
+  const resolvedSearchParams = await searchParams;
+  const category = resolvedSearchParams?.category;
   const products = await getProducts();
+
+  const filteredProducts = category
+    ? products.filter((p) => p.category?.toLowerCase() === category.toLowerCase())
+    : products;
 
   return (
     <main className="py-12 bg-gray-50 dark:bg-black min-h-[90vh]">
       <div className="container mx-auto px-4">
         <h1 className="text-4xl font-extrabold text-center mb-12 tracking-wider uppercase text-black dark:text-white">
-          All Products
+          {category ? `${category} Collection` : 'All Products'}
         </h1>
-        {products.length > 0 ? (
+        {filteredProducts.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {products.map((product) => (
+            {filteredProducts.map((product) => (
               <ProductCard key={product._id} product={product} />
             ))}
           </div>
         ) : (
           <div className="text-center py-20">
-            <p className="text-gray-500 text-lg">No products found. Please seed the database.</p>
+            <p className="text-gray-500 text-lg">No products found.</p>
           </div>
         )}
       </div>

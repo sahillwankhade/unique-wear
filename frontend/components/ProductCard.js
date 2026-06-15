@@ -7,7 +7,14 @@ export default function ProductCard({ product }) {
   const { addToCart } = useCart();
   const router = useRouter();
 
-  const productImage = product.images && product.images[0] ? product.images[0] : product.image;
+  const getProductImage = (img) => {
+    if (!img) return 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=800';
+    if (img.startsWith('http')) return img;
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+    return `${apiUrl}${img}`;
+  };
+
+  const productImage = getProductImage(product.images && product.images[0] ? product.images[0] : product.image);
 
   const handleCardClick = () => {
     router.push(`/products/${product._id}`);
