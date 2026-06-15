@@ -8,42 +8,65 @@ export default function Navbar() {
   const { cartItemsCount } = useCart();
 
   return (
-    <nav className="bg-black text-white p-4 sticky top-0 z-50">
-      <div className="container mx-auto flex justify-between items-center">
-        <Link href="/" className="text-2xl font-bold tracking-widest uppercase text-gold hover:opacity-85 transition">
+    <header className="sticky top-0 z-50 w-full px-4 py-4 md:px-8">
+      <nav className="mx-auto max-w-7xl glass-panel rounded-full px-6 py-4 flex justify-between items-center shadow-lg bg-black/60 backdrop-blur-md border border-white/5">
+        {/* Brand Logo */}
+        <Link 
+          href="/" 
+          className="text-xl md:text-2xl font-extrabold tracking-widest uppercase text-gold-gradient hover:opacity-80 transition duration-300"
+        >
           Unique Wear
         </Link>
-        <div className="space-x-6 flex items-center">
-          <Link href="/products" className="hover:text-gold transition">Shop</Link>
-          <Link href="/categories" className="hover:text-gold transition">Categories</Link>
-          <Link href="/cart" className="hover:text-gold transition flex items-center">
-            Cart
+
+        {/* Links */}
+        <div className="space-x-4 md:space-x-8 flex items-center font-semibold text-sm">
+          <Link href="/products" className="text-gray-300 hover:text-gold transition duration-300">
+            Shop
+          </Link>
+          <Link href="/categories" className="text-gray-300 hover:text-gold transition duration-300">
+            Categories
+          </Link>
+          <Link 
+            href="/cart" 
+            className="text-gray-300 hover:text-gold transition duration-300 flex items-center"
+          >
+            <span>Cart</span>
             {cartItemsCount > 0 && (
-              <span className="bg-gold text-black rounded-full px-2 py-0.5 text-xs font-bold ml-1.5 min-w-[20px] text-center">
+              <span className="bg-gold text-black rounded-full px-2 py-0.5 text-xs font-extrabold ml-1.5 min-w-[18px] text-center shadow-md">
                 {cartItemsCount}
               </span>
             )}
           </Link>
+
+          {/* User Auth Portal */}
           {user ? (
-            <div className="flex items-center space-x-4">
-              <span className="text-gray-300 text-sm hidden sm:inline">Hi, {user.name}</span>
+            <div className="flex items-center space-x-3 md:space-x-4">
+              <span className="text-gray-400 text-xs hidden lg:inline">Hi, {user.name}</span>
               {user.isAdmin && (
-                <Link href="/admin/add-product" className="text-gold font-bold text-sm uppercase tracking-wider hover:opacity-80 transition">
-                  Add Product
+                <Link 
+                  href="/admin/add-product" 
+                  className="bg-gold/10 text-gold border border-gold/20 hover:bg-gold/20 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider transition duration-300"
+                >
+                  Dashboard
                 </Link>
               )}
               <button 
                 onClick={logout} 
-                className="hover:bg-gold hover:text-black border border-gold rounded px-3 py-1 text-sm font-bold tracking-wider cursor-pointer uppercase transition duration-300"
+                className="text-xs text-gray-300 hover:text-white border border-white/10 hover:border-white/30 rounded-full px-3 py-1.5 uppercase font-bold tracking-wider cursor-pointer transition duration-300"
               >
                 Logout
               </button>
             </div>
           ) : (
-            <Link href="/login" className="hover:text-gold transition">Login</Link>
+            <Link 
+              href="/login" 
+              className="bg-gold text-black px-4 py-2 rounded-full font-bold uppercase tracking-wider text-xs hover:shadow-[0_0_15px_rgba(197,168,90,0.5)] transition duration-300"
+            >
+              Login
+            </Link>
           )}
         </div>
-      </div>
-    </nav>
+      </nav>
+    </header>
   );
 }

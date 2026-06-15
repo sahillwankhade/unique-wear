@@ -4,10 +4,20 @@ import { useAuth } from '../../../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
-export default function AddProductPage() {
+export default function AdminDashboardPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
 
+  // Navigation state
+  const [activeTab, setActiveTab] = useState('list'); // 'list' or 'add'
+
+  // Product listing states
+  const [productsList, setProductsList] = useState([]);
+  const [loadingProducts, setLoadingProducts] = useState(true);
+  const [productsError, setProductsError] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Form states
   const [name, setName] = useState('');
   const [price, setPrice] = useState('');
   const [description, setDescription] = useState('');
@@ -27,10 +37,30 @@ export default function AddProductPage() {
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
+  // Fetch all products for the listing tab
+  const fetchProducts = async () => {
+    setLoadingProducts(true);
+    setProductsError('');
+    try {
+      const res = await fetch(`${API_URL}/api/products`, { cache: 'no-store' });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || 'Failed to fetch products');
+      }
+      setProductsList(data);
+    } catch (err) {
+      setProductsError(err.message || 'Error loading products');
+    } finally {
+      setLoadingProducts(false);
+    }
+  };
+
   useEffect(() => {
     if (!loading) {
       if (!user || !user.isAdmin) {
         router.push('/login');
+      } else {
+        fetchProducts();
       }
     }
   }, [user, loading, router]);
@@ -42,6 +72,32 @@ export default function AddProductPage() {
       </div>
     );
   }
+
+  // Handle product deletion
+  const handleDeleteProduct = async (productId) => {
+    if (!window.confirm('Are you sure you want to delete this product?')) return;
+
+    try {
+      const res = await fetch(`${API_URL}/api/products/${productId}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || 'Failed to delete product');
+      }
+
+      // Remove from state list
+      setProductsList(productsList.filter((p) => p._id !== productId));
+      alert('Product deleted successfully');
+    } catch (err) {
+      alert(err.message || 'Error deleting product');
+    }
+  };
 
   const handleSizeChange = (size) => {
     if (sizes.includes(size)) {
@@ -64,7 +120,6 @@ export default function AddProductPage() {
       const res = await fetch(`${API_URL}/api/upload`, {
         method: 'POST',
         body: formData,
-        // Do NOT set Content-Type header; fetch automatically sets it with boundary for FormData
       });
 
       const data = await res.json();
@@ -75,7 +130,6 @@ export default function AddProductPage() {
       setImage(data.image);
       setUploading(false);
     } catch (err) {
-      console.error(err);
       setUploadError(err.message || 'Failed to upload image');
       setUploading(false);
     }
@@ -125,6 +179,13 @@ export default function AddProductPage() {
       setImage('');
       setCountInStock('10');
       setSizes(['S', 'M', 'L', 'XL']);
+      // Refresh list
+      fetchProducts();
+      // Switch back to list tab
+      setTimeout(() => {
+        setActiveTab('list');
+        setSubmitSuccess(false);
+      }, 1500);
     } catch (err) {
       setError(err.message || 'Failed to create product');
     } finally {
@@ -132,162 +193,276 @@ export default function AddProductPage() {
     }
   };
 
+  // Filter products by search
+  const filteredProducts = productsList.filter((p) =>
+    p.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
-    <div className="container mx-auto px-4 py-16 max-w-2xl min-h-[90vh]">
-      <div className="bg-white dark:bg-gray-950 p-8 md:p-10 shadow-2xl border-t-4 border-gold">
-        <h1 className="text-3xl font-extrabold text-black dark:text-white uppercase tracking-wider mb-8 text-center">
-          Add New Product
-        </h1>
+    <div className="container mx-auto px-4 py-12 max-w-5xl min-h-[90vh]">
+      {/* Dashboard Title & Tabs Navigation */}
+      <div className="flex flex-col md:flex-row justify-between items-center mb-10 pb-6 border-b border-white/10 gap-4">
+        <div>
+          <h1 className="text-3xl font-extrabold text-white uppercase tracking-wider">
+            Admin Dashboard
+          </h1>
+          <p className="text-gray-400 text-sm mt-1">Manage store products, stock levels, and media</p>
+        </div>
+        <div className="flex space-x-2 bg-black/40 p-1.5 rounded-full border border-white/5">
+          <button
+            onClick={() => setActiveTab('list')}
+            className={`px-6 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer ${
+              activeTab === 'list'
+                ? 'bg-gold text-black shadow-md'
+                : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            Manage Products
+          </button>
+          <button
+            onClick={() => setActiveTab('add')}
+            className={`px-6 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer ${
+              activeTab === 'add'
+                ? 'bg-gold text-black shadow-md'
+                : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            Add Product
+          </button>
+        </div>
+      </div>
 
-        {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-800 rounded font-semibold text-sm">
-            {error}
-          </div>
-        )}
-
-        {submitSuccess && (
-          <div className="mb-6 p-4 bg-green-50 border border-green-200 text-green-800 rounded font-semibold text-sm flex items-center">
-            <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-            </svg>
-            Product created successfully!{' '}
-            <Link href="/products" className="underline font-bold ml-1 hover:text-green-600">
-              View Shop
-            </Link>
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Product Name */}
-          <div>
-            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Product Name *</label>
+      {/* Tab Content: Manage Products List */}
+      {activeTab === 'list' && (
+        <div className="glass-panel p-8 rounded-2xl bg-[#111113]/40 border border-white/5">
+          <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+            <h2 className="text-xl font-bold text-white uppercase tracking-wider">Product Inventory</h2>
             <input
               type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 text-black dark:text-white rounded focus:outline-none focus:border-gold"
-              placeholder="e.g. Premium Cotton Tee"
-              required
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search products by name..."
+              className="px-4 py-2.5 rounded-full glass-input text-sm w-full md:w-80 focus:outline-none"
             />
           </div>
 
-          {/* Row: Price & Stock */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {loadingProducts ? (
+            <div className="text-center py-20 text-gray-500 font-bold text-sm">
+              Loading inventory products...
+            </div>
+          ) : productsError ? (
+            <div className="text-center py-20 text-red-500 font-bold text-sm">
+              {productsError}
+            </div>
+          ) : filteredProducts.length === 0 ? (
+            <div className="text-center py-20 text-gray-500 text-sm">
+              No products found matching "{searchQuery}"
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse text-sm">
+                <thead>
+                  <tr className="border-b border-white/10 text-gray-400 font-bold uppercase tracking-wider text-xs">
+                    <th className="pb-4">Product</th>
+                    <th className="pb-4">Category</th>
+                    <th className="pb-4">Price</th>
+                    <th className="pb-4">Stock</th>
+                    <th className="pb-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                  {filteredProducts.map((p) => {
+                    const img = p.images && p.images[0] ? p.images[0] : p.image;
+                    const resolvedImg = img && img.startsWith('http') ? img : `${API_URL}${img}`;
+                    return (
+                      <tr key={p._id} className="hover:bg-white/[0.02] transition duration-200">
+                        <td className="py-4 flex items-center space-x-4">
+                          <div className="w-12 h-14 bg-black/40 overflow-hidden flex-shrink-0 border border-white/10">
+                            <img src={resolvedImg} alt={p.name} className="object-cover w-full h-full" />
+                          </div>
+                          <div>
+                            <span className="font-bold text-white block">{p.name}</span>
+                            <span className="text-xs text-gray-500 block truncate max-w-xs">{p.description}</span>
+                          </div>
+                        </td>
+                        <td className="py-4 text-gray-300 font-semibold">{p.category}</td>
+                        <td className="py-4 text-gold font-bold">${p.price}</td>
+                        <td className="py-4">
+                          <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                            p.countInStock > 0 ? 'bg-green-950 text-green-300' : 'bg-red-950 text-red-300'
+                          }`}>
+                            {p.countInStock} Left
+                          </span>
+                        </td>
+                        <td className="py-4 text-right">
+                          <button
+                            onClick={() => handleDeleteProduct(p._id)}
+                            className="bg-red-600/10 hover:bg-red-600 hover:text-white border border-red-600/20 text-red-500 text-xs px-3.5 py-1.5 rounded-full font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer"
+                          >
+                            Delete
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Tab Content: Add Product Form */}
+      {activeTab === 'add' && (
+        <div className="glass-panel p-8 md:p-10 rounded-2xl bg-[#111113]/40 border border-white/5 max-w-2xl mx-auto">
+          <h2 className="text-xl font-bold text-white uppercase tracking-wider mb-8 text-center border-b border-white/5 pb-4">
+            Upload Product Listing
+          </h2>
+
+          {error && (
+            <div className="mb-6 p-4 bg-red-900/20 border border-red-900/40 text-red-400 rounded font-semibold text-sm">
+              {error}
+            </div>
+          )}
+
+          {submitSuccess && (
+            <div className="mb-6 p-4 bg-green-900/20 border border-green-900/40 text-green-400 rounded font-semibold text-sm">
+              Product listing added successfully! Returning to inventory...
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Product Name */}
             <div>
-              <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Price (INR) *</label>
-              <input
-                type="number"
-                value={price}
-                onChange={(e) => setPrice(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 text-black dark:text-white rounded focus:outline-none focus:border-gold"
-                placeholder="e.g. 500"
-                min="0"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Stock Count *</label>
-              <input
-                type="number"
-                value={countInStock}
-                onChange={(e) => setCountInStock(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 text-black dark:text-white rounded focus:outline-none focus:border-gold"
-                min="0"
-                required
-              />
-            </div>
-          </div>
-
-          {/* Description */}
-          <div>
-            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Description *</label>
-            <textarea
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 text-black dark:text-white rounded focus:outline-none focus:border-gold h-32"
-              placeholder="Describe the product details, material, fit..."
-              required
-            />
-          </div>
-
-          {/* Category */}
-          <div>
-            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Category *</label>
-            <select
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 text-black dark:text-white rounded focus:outline-none focus:border-gold"
-            >
-              <option value="T-Shirts">T-Shirts</option>
-              <option value="Outerwear">Outerwear</option>
-              <option value="Bottoms">Bottoms</option>
-            </select>
-          </div>
-
-          {/* Size Multi-Selector */}
-          <div>
-            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Available Sizes</label>
-            <div className="flex space-x-4">
-              {['S', 'M', 'L', 'XL'].map((size) => (
-                <label key={size} className="inline-flex items-center space-x-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={sizes.includes(size)}
-                    onChange={() => handleSizeChange(size)}
-                    className="w-4 h-4 text-gold accent-gold"
-                  />
-                  <span className="font-bold text-black dark:text-white">{size}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-
-          {/* Image Upload */}
-          <div>
-            <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">Product Image *</label>
-            <div className="flex items-center space-x-4">
+              <label className="block text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">Product Name *</label>
               <input
                 type="text"
-                value={image}
-                onChange={(e) => setImage(e.target.value)}
-                className="flex-grow px-4 py-3 border border-gray-300 dark:border-gray-800 bg-gray-50 dark:bg-gray-900 text-black dark:text-white rounded focus:outline-none focus:border-gold"
-                placeholder="Image URL or upload from file"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl glass-input text-sm"
+                placeholder="e.g. Premium Cotton Tee"
                 required
               />
-              <label className="bg-black text-white hover:bg-gold hover:text-black border border-black px-4 py-3 font-bold text-sm uppercase tracking-wider cursor-pointer transition flex-shrink-0">
-                {uploading ? 'Uploading...' : 'Browse'}
-                <input
-                  type="file"
-                  onChange={uploadFileHandler}
-                  className="hidden"
-                  accept="image/*"
-                />
-              </label>
             </div>
-            {uploadError && (
-              <p className="mt-2 text-xs text-red-600 font-bold">{uploadError}</p>
-            )}
-            {image && (
-              <div className="mt-4 w-32 h-40 border border-gray-200 overflow-hidden bg-gray-50 flex items-center justify-center">
-                <img 
-                  src={image.startsWith('http') ? image : `${API_URL}${image}`} 
-                  alt="Preview" 
-                  className="object-cover w-full h-full" 
+
+            {/* Row: Price & Stock */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">Price (INR) *</label>
+                <input
+                  type="number"
+                  value={price}
+                  onChange={(e) => setPrice(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl glass-input text-sm"
+                  placeholder="e.g. 500"
+                  min="0"
+                  required
                 />
               </div>
-            )}
-          </div>
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">Stock Count *</label>
+                <input
+                  type="number"
+                  value={countInStock}
+                  onChange={(e) => setCountInStock(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl glass-input text-sm"
+                  min="0"
+                  required
+                />
+              </div>
+            </div>
 
-          {/* Submit */}
-          <button
-            type="submit"
-            disabled={submitting}
-            className="w-full bg-black text-white dark:bg-white dark:text-black font-bold py-4 uppercase tracking-widest hover:bg-gold hover:text-black transition disabled:opacity-50 cursor-pointer"
-          >
-            {submitting ? 'Creating Product...' : 'Create Product'}
-          </button>
-        </form>
-      </div>
+            {/* Description */}
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">Description *</label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl glass-input text-sm h-32"
+                placeholder="Describe product materials, fit, dimensions..."
+                required
+              />
+            </div>
+
+            {/* Category */}
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">Category *</label>
+              <select
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                className="w-full px-4 py-3 rounded-xl glass-input text-sm cursor-pointer"
+              >
+                <option value="T-Shirts">T-Shirts</option>
+                <option value="Outerwear">Outerwear</option>
+                <option value="Bottoms">Bottoms</option>
+              </select>
+            </div>
+
+            {/* Sizes checkboxes */}
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">Available Sizes</label>
+              <div className="flex space-x-6">
+                {['S', 'M', 'L', 'XL'].map((size) => (
+                  <label key={size} className="inline-flex items-center space-x-2.5 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={sizes.includes(size)}
+                      onChange={() => handleSizeChange(size)}
+                      className="w-4 h-4 text-gold accent-gold rounded focus:ring-0"
+                    />
+                    <span className="font-bold text-white text-sm">{size}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Image Explorer File Selection */}
+            <div>
+              <label className="block text-xs font-bold uppercase tracking-widest text-gray-400 mb-2">Product Image *</label>
+              <div className="flex items-center space-x-4">
+                <input
+                  type="text"
+                  value={image}
+                  onChange={(e) => setImage(e.target.value)}
+                  className="flex-grow px-4 py-3 rounded-xl glass-input text-sm"
+                  placeholder="Image URL path or upload below"
+                  required
+                />
+                <label className="bg-gold text-black font-extrabold text-xs px-5 py-3 rounded-xl uppercase tracking-wider hover:opacity-95 cursor-pointer transition duration-300">
+                  {uploading ? 'Uploading...' : 'Browse'}
+                  <input
+                    type="file"
+                    onChange={uploadFileHandler}
+                    className="hidden"
+                    accept="image/*"
+                  />
+                </label>
+              </div>
+              {uploadError && (
+                <p className="mt-2 text-xs text-red-500 font-bold">{uploadError}</p>
+              )}
+              {image && (
+                <div className="mt-4 w-32 h-40 border border-white/10 overflow-hidden bg-black/40 flex items-center justify-center rounded-xl">
+                  <img 
+                    src={image.startsWith('http') ? image : `${API_URL}${image}`} 
+                    alt="Preview" 
+                    className="object-cover w-full h-full" 
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Submit btn */}
+            <button
+              type="submit"
+              disabled={submitting}
+              className="w-full btn-gold py-4 rounded-full text-sm font-extrabold uppercase tracking-widest shadow-md transition disabled:opacity-50 cursor-pointer"
+            >
+              {submitting ? 'Creating listing...' : 'Create Listing'}
+            </button>
+          </form>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,5 +1,7 @@
 const express = require('express');
 const router = express.Router();
+const { addOrderItems, getOrderById } = require('../controllers/orderController');
+const { protect } = require('../middleware/authMiddleware');
 const Razorpay = require('razorpay');
 
 router.post('/create-razorpay-order', async (req, res) => {
@@ -23,6 +25,7 @@ router.post('/create-razorpay-order', async (req, res) => {
   }
 });
 
-router.route('/').post((req, res) => res.json({ message: 'Create order not fully implemented' }));
+router.route('/').post(protect, addOrderItems);
+router.route('/:id').get(protect, getOrderById);
 
 module.exports = router;
